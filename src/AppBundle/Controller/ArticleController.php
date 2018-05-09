@@ -7,6 +7,7 @@ use AppBundle\Entity\Article;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\View;
+use FOS\RestBundle\Controller\Annotations\QueryParam;
 use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,5 +55,19 @@ class ArticleController extends FOSRestController
             ['Location' => $this->generateUrl('app_article_show',
                 ['id' => $article->getId(),
                     UrlGeneratorInterface::ABSOLUTE_URL])]);
+    }
+
+    /**
+     * @Get("/articles", name="app_article_list")
+     * @QueryParam(
+     *     name="order",
+     *     requirements="asc|desc",
+     *     default="asc",
+     *     description="Sort order (asc or desc)"
+     * )
+     */
+    public function listAction($order)
+    {
+        die($order);
     }
 }

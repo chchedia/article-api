@@ -68,6 +68,7 @@ swiftmailer:
 
 
 fos_rest:
+    param_fetcher_listener: force
     body_converter:
         enabled: true
     view:
