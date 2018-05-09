@@ -8,6 +8,7 @@ use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\View;
 use FOS\RestBundle\Controller\Annotations\QueryParam;
+use FOS\RestBundle\Controller\Annotations\RequestParam;
 use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -58,16 +59,16 @@ class ArticleController extends FOSRestController
     }
 
     /**
-     * @Get("/articles", name="app_article_list")
-     * @QueryParam(
-     *     name="order",
-     *     requirements="asc|desc",
-     *     default="asc",
-     *     description="Sort order (asc or desc)"
+     * @Post("/articles/list", name="app_article_list")
+     * @RequestParam(
+     *     name="search",
+     *     default=null,
+     *     nullable=true,
+     *     description="Search query to look for articles"
      * )
      */
-    public function listAction($order)
+    public function listAction($search)
     {
-        die($order);
+        die($search);
     }
 }
