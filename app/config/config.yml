@@ -81,3 +81,4 @@ fos_rest:
 
 sensio_framework_extra:
     view: { annotations: true }
+    request: { converters: true }
