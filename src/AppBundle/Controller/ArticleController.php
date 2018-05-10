@@ -4,12 +4,13 @@ namespace AppBundle\Controller;
 
 use AppBundle\Entity\Article;
 //use FOS\RestBundle\Controller\FOSRestController;
+use AppBundle\Representation\Articles;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\Controller\Annotations\View;
 use FOS\RestBundle\Controller\Annotations\QueryParam;
-use FOS\RestBundle\Controller\Annotations\RequestParam;
 use FOS\RestBundle\Controller\FOSRestController;
+use FOS\RestBundle\Request\ParamFetcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -59,16 +60,41 @@ class ArticleController extends FOSRestController
     }
 
     /**
-     * @Post("/articles/list", name="app_article_list")
-     * @RequestParam(
-     *     name="search",
-     *     default=null,
+     * @Get("/articles/list", name="app_article_list")
+     * @QueryParam(
+     *     name="keyword",
+     *     requirements="[a-zA-Z0-9]",
      *     nullable=true,
-     *     description="Search query to look for articles"
+     *     description="the keyword to search for"
+     * )
+     * @QueryParam(
+     *     name="order",
+     *     requirements="asc|desc",
+     *     default="asc",
+     *     description="sort order (asc or desc)"
+     * )
+     * @QueryParam(
+     *     name="limit",
+     *     requirements="\d+",
+     *     default="15",
+     *     description="Max number of articles per page"
+     * )
+     * @QueryParam(
+     *     name="offset",
+     *     requirements="\d+",
+     *     default="0",
+     *     description="the pagination offset"
      * )
      */
-    public function listAction($search)
+    public function listAction(ParamFetcherInterface $paramFetcher)
     {
-        die($search);
+        $pager= $this->getDoctrine()->getRepository('AppBundle:Article')->search(
+            $paramFetcher->get('keyword'),
+            $paramFetcher->get('order'),
+            $paramFetcher->get('limit'),
+            $paramFetcher->get('offset')
+        );
+
+        return $this->view(new Articles($pager),Response::HTTP_OK);
     }
 }
