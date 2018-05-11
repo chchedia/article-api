@@ -4,6 +4,7 @@ namespace AppBundle\Controller;
 
 use AppBundle\Entity\Article;
 //use FOS\RestBundle\Controller\FOSRestController;
+use AppBundle\Exception\ResourceValidationException;
 use AppBundle\Representation\Articles;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
@@ -50,7 +51,15 @@ class ArticleController extends FOSRestController
     public function createAction(Article $article, Request $request, ConstraintViolationList $violations)
     {
         if(count($violations)){
-            return $this->view($violations, Response::HTTP_BAD_REQUEST);
+            $message='The JSON sent contains invalid data:';
+            foreach ($violations as $violation){
+                $message.=sprintf(
+                    "Field %s: %s",
+                    $violation->getPropertyPath(),
+                    $violation->getMessage()
+                );
+            }
+            throw new ResourceValidationException($message);
         }
 
         $em=$this->getDoctrine()->getManager();
