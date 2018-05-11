@@ -42,7 +42,10 @@ class ArticleController extends FOSRestController
      *     name= "app_article_create"
      * )
      * @View(StatusCode= 201)
-     * @ParamConverter("article", converter="fos_rest.request_body")
+     * @ParamConverter("article",
+     *     converter="fos_rest.request_body",
+     *     options= { "validator"= {"groups"="Create"}}
+     *     )
      */
     public function createAction(Article $article, Request $request, ConstraintViolationList $violations)
     {

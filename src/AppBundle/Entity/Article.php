@@ -35,7 +35,7 @@ class Article
      * @ORM\Column(name="title", type="string", length=100)
      *
      * @Expose
-     * @Assert\NotBlank
+     * @Assert\NotBlank(groups={"Create"})
      */
     private $title;
 
