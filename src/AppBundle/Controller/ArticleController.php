@@ -49,6 +49,10 @@ class ArticleController extends FOSRestController
         $form = $this->get('form.factory')->create(ArticleType::class, $article);
         $form->submit($data);
 
+        $error = $this->get('validator')->validate($article);
+        if(count($error)){
+            return $this->view($error, Response::HTTP_BAD_REQUEST);
+        }
         $em=$this->getDoctrine()->getManager();
         $em->persist($article);
         $em->flush();
