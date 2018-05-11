@@ -14,6 +14,7 @@ use FOS\RestBundle\Request\ParamFetcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\ConstraintViolationList;
 use AppBundle\Form\ArticleType;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -41,18 +42,14 @@ class ArticleController extends FOSRestController
      *     name= "app_article_create"
      * )
      * @View(StatusCode= 201)
+     * @ParamConverter("article", converter="fos_rest.request_body")
      */
-    public function createAction(Request $request)
+    public function createAction(Article $article, Request $request, ConstraintViolationList $violations)
     {
-        $data = $this->get('jms_serializer')->deserialize($request->getContent(), 'array', 'json');
-        $article = new Article();
-        $form = $this->get('form.factory')->create(ArticleType::class, $article);
-        $form->submit($data);
-
-        $error = $this->get('validator')->validate($article);
-        if(count($error)){
-            return $this->view($error, Response::HTTP_BAD_REQUEST);
+        if(count($violations)){
+            return $this->view($violations, Response::HTTP_BAD_REQUEST);
         }
+
         $em=$this->getDoctrine()->getManager();
         $em->persist($article);
         $em->flush();
