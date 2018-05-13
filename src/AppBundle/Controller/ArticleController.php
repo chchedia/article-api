@@ -8,11 +8,14 @@ use AppBundle\Exception\ResourceValidationException;
 use AppBundle\Representation\Articles;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
+use FOS\RestBundle\Controller\Annotations\Put;
+use FOS\RestBundle\Controller\Annotations\Delete;
 use FOS\RestBundle\Controller\Annotations\View;
 use FOS\RestBundle\Controller\Annotations\QueryParam;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Request\ParamFetcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\ConstraintViolationList;
@@ -37,6 +40,7 @@ class ArticleController extends FOSRestController
         $response = new Response($data);
         return $response;
     }
+
     /**
      * @Post(
      *     path= "/articles",
@@ -50,10 +54,10 @@ class ArticleController extends FOSRestController
      */
     public function createAction(Article $article, Request $request, ConstraintViolationList $violations)
     {
-        if(count($violations)){
-            $message='The JSON sent contains invalid data:';
-            foreach ($violations as $violation){
-                $message.=sprintf(
+        if (count($violations)) {
+            $message = 'The JSON sent contains invalid data:';
+            foreach ($violations as $violation) {
+                $message .= sprintf(
                     "Field %s: %s",
                     $violation->getPropertyPath(),
                     $violation->getMessage()
@@ -62,7 +66,7 @@ class ArticleController extends FOSRestController
             throw new ResourceValidationException($message);
         }
 
-        $em=$this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
         $em->persist($article);
         $em->flush();
 
@@ -101,13 +105,66 @@ class ArticleController extends FOSRestController
      */
     public function listAction(ParamFetcherInterface $paramFetcher)
     {
-        $pager= $this->getDoctrine()->getRepository('AppBundle:Article')->search(
+        $pager = $this->getDoctrine()->getRepository('AppBundle:Article')->search(
             $paramFetcher->get('keyword'),
             $paramFetcher->get('order'),
             $paramFetcher->get('limit'),
             $paramFetcher->get('offset')
         );
 
-        return $this->view(new Articles($pager),Response::HTTP_OK);
+        return $this->view(new Articles($pager), Response::HTTP_OK);
+    }
+
+    /**
+     * @Put(
+     *     path= "/articles/{id}",
+     *     name= "app_article_update"
+     * )
+     * @View(StatusCode= 200)
+     * @ParamConverter("article",converter="fos_rest.request_body")
+     */
+    public function updateAction (Article $article,Request $request,ConstraintViolationList $violations )
+    {
+        if (count($violations)) {
+            $message = 'The JSON sent contains invalid data:';
+            foreach ($violations as $violation) {
+                $message .= sprintf(
+                    "Field %s: %s",
+                    $violation->getPropertyPath(),
+                    $violation->getMessage()
+                );
+            }
+            throw new ResourceValidationException($message);
+        }
+        $em= $this->getDoctrine()->getManager();
+        $oldArticle= $em->getRepository('AppBundle:Article')->findOneById($request->get('id'));
+        if (empty($oldArticle)) {
+            return $this->view(new JsonResponse(['message' => 'Article not found'], Response::HTTP_NOT_FOUND));
+        } else {
+            $oldArticle->setContent($article->getContent());
+            $oldArticle->setTitle($article->getTitle());
+            $em->flush();
+            return $this->view($oldArticle, Response::HTTP_OK);
+        }
+    }
+
+    /**
+     * @Delete(
+     *     path= "/articles/{id}",
+     *     name= "app_article_delete"
+     * )
+     * @View(StatusCode= 200)
+     */
+    public function deleteAction (Request $request)
+    {
+        $em= $this->getDoctrine()->getManager();
+        $article= $em->getRepository('AppBundle:Article')->findOneById($request->get('id'));
+        if (empty($article)) {
+            return $this->view(new JsonResponse(['message' => 'Article not found'], Response::HTTP_NOT_FOUND));
+        } else {
+            $em->remove($article);
+            $em->flush();
+            return $this->view("Article supprimé !");
+        }
     }
 }
